@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#8b5e8f" />
+  <title>RDV Beauté — Espace pro</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #fdf6f0;
+      color: #2d2d2d;
+      min-height: 100vh;
+    }
+    .wrap { max-width: 720px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* HEADER */
+    .header {
+      background: linear-gradient(135deg, #c9a0dc 0%, #f4a7b9 60%, #ffd6c0 100%);
+      padding: 28px 20px 18px;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .header-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: white;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.12);
+    }
+    .header-sub { font-size: 0.75rem; color: rgba(255,255,255,0.85); margin-top: 2px; }
+    .logout-btn {
+      position: absolute; top: 28px; right: 20px;
+      background: rgba(255,255,255,0.25); border: none; color: white;
+      padding: 6px 12px; border-radius: 20px; font-size: 0.72rem; cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    /* LOGIN */
+    .login-screen { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .login-box { background: white; border-radius: 18px; padding: 32px 26px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); width: 100%; max-width: 340px; text-align: center; }
+    .login-emoji { font-size: 2.4rem; margin-bottom: 6px; }
+    .login-title { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 600; color: #8b5e8f; margin-bottom: 18px; }
+    .login-input {
+      width: 100%; padding: 12px 14px; border-radius: 10px; border: 2px solid #eee;
+      font-size: 1rem; text-align: center; outline: none; margin-bottom: 12px;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .login-input:focus { border-color: #c9a0dc; }
+    .login-error { color: #d65d5d; font-size: 0.78rem; margin-bottom: 10px; min-height: 16px; }
+    .login-btn {
+      width: 100%; padding: 12px; border-radius: 30px; border: none;
+      background: linear-gradient(135deg, #c9a0dc, #f4a7b9); color: white;
+      font-weight: 600; font-size: 0.92rem; cursor: pointer; font-family: 'DM Sans', sans-serif;
+    }
+
+    /* TABS */
+    .tabs { display: flex; gap: 6px; padding: 14px 16px 0; flex-shrink: 0; flex-wrap: wrap; }
+    .tab {
+      flex: 1; text-align: center; padding: 10px 6px; border-radius: 12px;
+      font-size: 0.78rem; font-weight: 500; color: #b89bb8; background: white;
+      cursor: pointer; border: 2px solid transparent; box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+      min-width: 80px;
+    }
+    .tab.active { color: white; background: linear-gradient(135deg, #c9a0dc, #f4a7b9); border-color: transparent; }
+
+    .content { flex: 1; overflow-y: auto; padding: 16px; }
+
+    .section-title { font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; font-weight: 600; color: #8b5e8f; margin-bottom: 12px; }
+    .empty-msg { color: #bbb; font-size: 0.85rem; text-align: center; padding: 30px 10px; }
+
+    /* RDV CARDS */
+    .rdv-card { background: white; border-radius: 14px; padding: 14px; margin-bottom: 10px; box-shadow: 0 1px 8px rgba(0,0,0,0.05); border-left: 4px solid #e0c8f0; }
+    .rdv-card.confirme { border-left-color: #7fc28a; }
+    .rdv-card.annule { border-left-color: #e08a8a; opacity: 0.6; }
+    .rdv-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .rdv-name { font-weight: 600; font-size: 0.95rem; }
+    .rdv-when { font-size: 0.8rem; color: #9b59b6; font-weight: 500; }
+    .rdv-detail { font-size: 0.82rem; color: #777; margin-bottom: 2px; }
+    .rdv-statut {
+      font-size: 0.65rem; padding: 3px 9px; border-radius: 20px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap;
+    }
+    .rdv-statut.en_attente { background: #fff3cd; color: #8a6d00; }
+    .rdv-statut.confirme { background: #e1f5e4; color: #2e7d4f; }
+    .rdv-statut.annule { background: #fde2e2; color: #b03939; }
+    .rdv-actions { display: flex; gap: 7px; margin-top: 10px; }
+    .rdv-actions button {
+      flex: 1; padding: 7px; border-radius: 20px; border: none; font-size: 0.75rem;
+      font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif;
+    }
+    .btn-valider { background: #e1f5e4; color: #2e7d4f; }
+    .btn-annuler { background: #fde2e2; color: #b03939; }
+    .btn-suppr { background: #f0f0f0; color: #888; }
+
+    /* SERVICES */
+    .cat-block { background: white; border-radius: 14px; padding: 14px; margin-bottom: 10px; box-shadow: 0 1px 8px rgba(0,0,0,0.05); }
+    .cat-block-title { font-weight: 600; font-size: 0.9rem; color: #8b5e8f; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .svc-row { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-top: 1px solid #f5f0f8; }
+    .svc-row:first-of-type { border-top: none; }
+    .svc-name { flex: 1; font-size: 0.85rem; }
+    .svc-price-input {
+      width: 78px; padding: 6px 8px; border-radius: 8px; border: 1.5px solid #eee;
+      font-size: 0.82rem; text-align: right; font-family: 'DM Sans', sans-serif; outline: none;
+    }
+    .svc-price-input:focus { border-color: #c9a0dc; }
+    .svc-del { background: none; border: none; color: #e0a0a0; font-size: 1rem; cursor: pointer; padding: 0 4px; }
+    .add-svc-row { display: flex; gap: 6px; margin-top: 8px; }
+    .add-svc-row input { flex: 1; padding: 8px 10px; border-radius: 8px; border: 1.5px solid #eee; font-size: 0.82rem; outline: none; font-family: 'DM Sans', sans-serif; }
+    .add-svc-row input:focus { border-color: #c9a0dc; }
+    .add-svc-row button { padding: 8px 14px; border-radius: 8px; border: none; background: #c9a0dc; color: white; font-size: 0.8rem; cursor: pointer; }
+
+    /* DISPO */
+    .day-block { background: white; border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; box-shadow: 0 1px 8px rgba(0,0,0,0.05); }
+    .day-head { display: flex; justify-content: space-between; align-items: center; }
+    .day-label { font-weight: 600; font-size: 0.88rem; color: #2d2d2d; }
+    .day-num { color: #c9a0dc; font-family: 'Cormorant Garamond', serif; font-weight: 600; }
+    .day-slots { font-size: 0.78rem; color: #999; margin-top: 4px; }
+    .day-slots .none { color: #ccc; font-style: italic; }
+    .slot-tag { display: inline-block; background: #f3e8ff; color: #7c3aed; padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; margin: 2px 3px 0 0; }
+    .slot-tag button { background: none; border: none; color: #b388d8; margin-left: 4px; cursor: pointer; font-size: 0.7rem; }
+    .add-slot-row { display: flex; gap: 6px; margin-top: 8px; }
+    .add-slot-row input { flex: 1; padding: 7px 9px; border-radius: 8px; border: 1.5px solid #eee; font-size: 0.78rem; outline: none; font-family: 'DM Sans', sans-serif; }
+    .add-slot-row button { padding: 7px 12px; border-radius: 8px; border: none; background: #c9a0dc; color: white; font-size: 0.75rem; cursor: pointer; }
+
+    /* STATS */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .stat-card { background: white; border-radius: 14px; padding: 16px; box-shadow: 0 1px 8px rgba(0,0,0,0.05); text-align: center; }
+    .stat-num { font-size: 1.8rem; font-weight: 600; color: #c9a0dc; }
+    .stat-label { font-size: 0.75rem; color: #999; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+    .month-selector { display: flex; gap: 8px; margin-bottom: 14px; align-items: center; }
+    .month-selector input { flex: 1; padding: 10px 12px; border-radius: 10px; border: 2px solid #eee; font-size: 0.9rem; font-family: 'DM Sans', sans-serif; outline: none; }
+    .month-selector input:focus { border-color: #c9a0dc; }
+
+    .toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: #2d2d2d; color: white; padding: 10px 20px; border-radius: 30px;
+      font-size: 0.82rem; box-shadow: 0 4px 16px rgba(0,0,0,0.2); z-index: 100;
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+const ADMIN_PASSWORD = "beaute2026";
+
+const DEFAULT_CATS = [
+  { id:"manucure", label:"Manucure", icon:"💅", items:[
+    {id:"m1",label:"Gainage sur ongle naturel",prix:35},
+    {id:"m2",label:"Pose Gel X",prix:40},
+    {id:"m3",label:"Pose chablon",prix:50},
+    {id:"m4",label:"Remplissage",prix:35},
+    {id:"m5",label:"Remplissage pose extérieur",prix:40},
+    {id:"m6",label:"Dépose Acrylique",prix:20},
+    {id:"m7",label:"Dépose",prix:15},
+    {id:"m8",label:"Nail art",prix:null},
+  ]},
+  { id:"pedicure", label:"Pédicure", icon:"🦶", items:[
+    {id:"p1",label:"Vernis semi-perm simple",prix:20},
+    {id:"p2",label:"Semi-Perm avec extension gros orteil",prix:35},
+    {id:"p3",label:"Dépose + Repose vernis simple",prix:25},
+    {id:"p4",label:"Remplissage",prix:30},
+    {id:"p5",label:"Dépose acrylique",prix:20},
+    {id:"p6",label:"Dépose",prix:15},
+    {id:"p7",label:"Déco (strass, dessin, french élaboré)",prix:5},
+  ]},
+  { id:"soins-pieds", label:"Soins des pieds", icon:"✨", items:[
+    {id:"sp1",label:"Talon express",prix:25},
+    {id:"sp2",label:"Soins des pieds",prix:40},
+    {id:"sp3",label:"Soins + vernis semi-perm simple",prix:50},
+    {id:"sp4",label:"Soins dépose + repose + vernis semi-perm",prix:60},
+    {id:"sp5",label:"Soins + remplissage",prix:65},
+    {id:"sp6",label:"Soins + vernis semi-perm + extension gros orteil",prix:70},
+  ]},
+  { id:"visage", label:"Soins du visage", icon:"🌸", items:[
+    {id:"v1",label:"Soins du visage",prix:45},
+  ]},
+  { id:"epilations", label:"Épilations", icon:"🌿", items:[
+    {id:"e1",label:"Sourcils",prix:10},
+    {id:"e2",label:"Lèvre",prix:10},
+    {id:"e3",label:"Aiselles",prix:10},
+    {id:"e4",label:"Demi-jambe",prix:15},
+    {id:"e5",label:"Jambes entières",prix:28},
+    {id:"e6",label:"Maillot échancré",prix:25},
+    {id:"e7",label:"Maillot intégral",prix:30},
+    {id:"e8",label:"Vajacial seul",prix:40},
+    {id:"e9",label:"Interfessier",prix:5},
+    {id:"e10",label:"Épilation intégral + vajacial",prix:60},
+    {id:"e11",label:"PACK Aiselle + Demi-jambes + Maillot intégral 🆕",prix:50},
+  ]},
+  { id:"massage", label:"Massage", icon:"💆", items:[
+    {id:"mg1",label:"Massage relaxant corps entier (45min–1h)",prix:60},
+  ]},
+];
+
+const DEFAULT_DISPO = {
+  1:{slots:["17h30"]}, 2:{slots:[]}, 3:{slots:["17h30"]},
+  4:{slots:["8h00-11h00","14h00-17h00","20h00"]},
+  5:{slots:["8h00-11h00","14h00-17h00"]},
+  6:{slots:["8h00-11h00","14h00-17h00"]},
+  7:{slots:["8h00-11h00","14h00-17h00"]},
+  8:{slots:[]}, 9:{slots:[]}, 10:{slots:[]}, 11:{slots:[]}, 12:{slots:[]},
+  13:{slots:["8h00-11h00","14h00-17h00"]}, 14:{slots:[]},
+  15:{slots:["17h30"]}, 16:{slots:[]}, 17:{slots:["17h30"]},
+  18:{slots:["8h00-11h00","14h00-17h00"]},
+  19:{slots:[]}, 20:{slots:[]}, 21:{slots:[]},
+  22:{slots:["17h30"]},
+  23:{slots:[]}, 24:{slots:[]}, 25:{slots:[]},
+  26:{slots:["8h00-11h00","14h00-17h00"]},
+  27:{slots:["8h00-11h00","14h00-17h00"]},
+  28:{slots:["8h00-11h00","14h00-17h00"]},
+  29:{slots:["8h00-11h00","14h00-17h00"]},
+  30:{slots:["8h00-11h00","14h00-17h00"]},
+  31:{slots:["8h00-11h00","14h00-17h00"]},
+};
+
+function load(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch (e) { return fallback; }
+}
+function save(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+}
+
+function Toast({ msg }) {
+  if (!msg) return null;
+  return <div className="toast">{msg}</div>;
+}
+
+function LoginScreen({ onLogin }) {
+  const [pwd, setPwd] = useState("");
+  const [err, setErr] = useState("");
+
+  function tryLogin() {
+    if (pwd === ADMIN_PASSWORD) { onLogin(); }
+    else { setErr("Mot de passe incorrect"); }
+  }
+
+  return (
+    <div className="login-screen">
+      <div className="login-box">
+        <div className="login-emoji">🔐</div>
+        <div className="login-title">Espace pro</div>
+        <input
+          className="login-input" type="password" placeholder="Mot de passe"
+          value={pwd}
+          onChange={e=>{setPwd(e.target.value); setErr("");}}
+          onKeyDown={e=>{if(e.key==="Enter") tryLogin();}}
+          autoFocus
+        />
+        <div className="login-error">{err}</div>
+        <button className="login-btn" onClick={tryLogin}>Se connecter</button>
+      </div>
+    </div>
+  );
+}
+
+function RdvTab({ showToast }) {
+  const [list, setList] = useState(()=>load("rdv_beaute_liste", []));
+  const [filter, setFilter] = useState("tous");
+
+  function update(id, patch) {
+    const next = list.map(r=> r.id===id ? {...r, ...patch} : r);
+    setList(next); save("rdv_beaute_liste", next);
+  }
+  function remove(id) {
+    const next = list.filter(r=>r.id!==id);
+    setList(next); save("rdv_beaute_liste", next);
+    showToast("Rendez-vous supprimé");
+  }
+
+  const filtered = list
+    .filter(r => filter==="tous" || r.statut===filter)
+    .sort((a,b)=> (a.jour||0)-(b.jour||0));
+
+  return (
+    <div>
+      <div className="section-title">Rendez-vous</div>
+      <div className="tabs" style={{padding:0, marginBottom:12}}>
+        {["tous","en_attente","confirme","annule"].map(f=>(
+          <div key={f} className={`tab ${filter===f?"active":""}`} onClick={()=>setFilter(f)} style={{fontSize:"0.7rem"}}>
+            {f==="tous"?"Tous":f==="en_attente"?"En attente":f==="confirme"?"Confirmés":"Annulés"}
+          </div>
+        ))}
+      </div>
+
+      {filtered.length===0 && <div className="empty-msg">Aucun rendez-vous pour le moment.</div>}
+
+      {filtered.map(r=>(
+        <div key={r.id} className={`rdv-card ${r.statut}`}>
+          <div className="rdv-top">
+            <div>
+              <div className="rdv-name">{r.prenom} {r.nom}</div>
+              <div className="rdv-when">{r.jour} juillet · {r.creneau}</div>
+            </div>
+            <span className={`rdv-statut ${r.statut}`}>
+              {r.statut==="en_attente"?"En attente":r.statut==="confirme"?"Confirmé":"Annulé"}
+            </span>
+          </div>
+          <div className="rdv-detail">💅 {r.prestation} — {r.prix}</div>
+          <div className="rdv-detail">📞 {r.tel}</div>
+          <div className="rdv-actions">
+            {r.statut!=="confirme" && <button className="btn-valider" onClick={()=>update(r.id,{statut:"confirme"})}>✓ Valider</button>}
+            {r.statut!=="annule" && <button className="btn-annuler" onClick={()=>update(r.id,{statut:"annule"})}>✕ Annuler</button>}
+            <button className="btn-suppr" onClick={()=>remove(r.id)}>🗑</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ServicesTab({ showToast }) {
+  const [cats, setCats] = useState(()=>load("rdv_beaute_services", DEFAULT_CATS));
+  const [newNames, setNewNames] = useState({});
+
+  function persist(next) { setCats(next); save("rdv_beaute_services", next); }
+
+  function updatePrice(catId, itemId, val) {
+    const next = cats.map(c=>{
+      if (c.id!==catId) return c;
+      return {...c, items: c.items.map(it=> it.id===itemId ? {...it, prix: val===""?null:val} : it)};
+    });
+    persist(next);
+  }
+  function removeItem(catId, itemId) {
+    const next = cats.map(c=>{
+      if (c.id!==catId) return c;
+      return {...c, items: c.items.filter(it=>it.id!==itemId)};
+    });
+    persist(next);
+    showToast("Prestation supprimée");
+  }
+  function addItem(catId) {
+    const name = (newNames[catId]||"").trim();
+    if (!name) return;
+    const next = cats.map(c=>{
+      if (c.id!==catId) return c;
+      const id = catId+"_"+Date.now();
+      return {...c, items: [...c.items, {id, label:name, prix:null}]};
+    });
+    persist(next);
+    setNewNames({...newNames, [catId]: ""});
+    showToast("Prestation ajoutée");
+  }
+
+  return (
+    <div>
+      <div className="section-title">Services & tarifs</div>
+      {cats.map(cat=>(
+        <div key={cat.id} className="cat-block">
+          <div className="cat-block-title"><span>{cat.icon}</span><span>{cat.label}</span></div>
+          {cat.items.map(it=>(
+            <div key={it.id} className="svc-row">
+              <span className="svc-name">{it.label}</span>
+              <input
+                className="svc-price-input" type="text" placeholder="Prix"
+                value={it.prix===null?"":it.prix}
+                onChange={e=>updatePrice(cat.id, it.id, e.target.value)}
+              />
+              <button className="svc-del" onClick={()=>removeItem(cat.id, it.id)}>✕</button>
+            </div>
+          ))}
+          <div className="add-svc-row">
+            <input
+              type="text" placeholder="Nouvelle prestation..."
+              value={newNames[catId]||""}
+              onChange={e=>setNewNames({...newNames, [catId]: e.target.value})}
+              onKeyDown={e=>{if(e.key==="Enter") addItem(catId);}}
+            />
+            <button onClick={()=>addItem(cat.id)}>Ajouter</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function DispoTab({ showToast }) {
+  const [currentMonth, setCurrentMonth] = useState("2026-07");
+  const [dispo, setDispo] = useState(()=>load("rdv_beaute_dispo", DEFAULT_DISPO));
+  const [newSlot, setNewSlot] = useState({});
+
+  function persist(next) { setDispo(next); save("rdv_beaute_dispo", next); }
+
+  function addSlot(day) {
+    const val = (newSlot[day]||"").trim();
+    if (!val) return;
+    const current = dispo[day]||[];
+    persist({...dispo, [day]: [...current, val]});
+    setNewSlot({...newSlot, [day]: ""});
+    showToast("Créneau ajouté");
+  }
+  function removeSlot(day, idx) {
+    const current = dispo[day]||[];
+    persist({...dispo, [day]: current.filter((_,i)=>i!==idx)});
+    showToast("Créneau retiré");
+  }
+  function blockDay(day) {
+    persist({...dispo, [day]: []});
+    showToast("Jour fermé");
+  }
+  function openDay(day) {
+    if (!dispo[day] || dispo[day].length===0) {
+      persist({...dispo, [day]: ["8h00-11h00","14h00-17h00"]});
+      showToast("Jour ouvert avec créneaux par défaut");
+    }
+  }
+
+  const [year, month] = currentMonth.split("-").map(Number);
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const monthNames = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+
+  const days = Array.from({length: daysInMonth}, (_,i)=>i+1);
+
+  return (
+    <div>
+      <div className="section-title">Disponibilités</div>
+      <div className="month-selector">
+        <label style={{fontSize:"0.75rem", color:"#999", textTransform:"uppercase", fontWeight:"500"}}>Mois</label>
+        <input
+          type="month" value={currentMonth}
+          onChange={e=>setCurrentMonth(e.target.value)}
+        />
+      </div>
+
+      <div style={{fontSize:"0.9rem", color:"#666", marginBottom:14, fontWeight:"500"}}>
+        📅 {monthNames[month-1]} {year}
+      </div>
+
+      {days.map(day=>{
+        const slots = dispo[day]||[];
+        return (
+          <div key={day} className="day-block">
+            <div className="day-head">
+              <span className="day-label"><span className="day-num">{day}</span> {monthNames[month-1]}</span>
+              <div style={{display:"flex", gap:"6px"}}>
+                {slots.length===0 ? (
+                  <button onClick={()=>openDay(day)} style={{padding:"4px 10px", fontSize:"0.7rem", borderRadius:"8px", border:"1px solid #c9a0dc", background:"white", color:"#c9a0dc", cursor:"pointer"}}>Ouvrir</button>
+                ) : (
+                  <button onClick={()=>blockDay(day)} style={{padding:"4px 10px", fontSize:"0.7rem", borderRadius:"8px", border:"1px solid #e08a8a", background:"white", color:"#e08a8a", cursor:"pointer"}}>Fermer</button>
+                )}
+              </div>
+            </div>
+            <div className="day-slots">
+              {slots.length===0 && <span className="none">Fermé</span>}
+              {slots.map((s,idx)=>(
+                <span key={idx} className="slot-tag">{s}<button onClick={()=>removeSlot(day,idx)}>✕</button></span>
+              ))}
+            </div>
+            {slots.length>0 && (
+              <div className="add-slot-row">
+                <input
+                  type="text" placeholder="ex: 9h00-12h00"
+                  value={newSlot[day]||""}
+                  onChange={e=>setNewSlot({...newSlot, [day]: e.target.value})}
+                  onKeyDown={e=>{if(e.key==="Enter") addSlot(day);}}
+                />
+                <button onClick={()=>addSlot(day)}>+ Ajouter</button>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function StatsTab() {
+  const [list] = useState(()=>load("rdv_beaute_liste", []));
+
+  const stats = {
+    total: list.length,
+    confirmes: list.filter(r=>r.statut==="confirme").length,
+    enAttente: list.filter(r=>r.statut==="en_attente").length,
+    annules: list.filter(r=>r.statut==="annule").length,
+  };
+
+  return (
+    <div>
+      <div className="section-title">Statistiques</div>
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-num">{stats.total}</div>
+          <div className="stat-label">Total RDV</div>
+        </div>
+        <div className="stat-card" style={{background:"#e1f5e4"}}>
+          <div className="stat-num" style={{color:"#7fc28a"}}>{stats.confirmes}</div>
+          <div className="stat-label">Confirmés</div>
+        </div>
+        <div className="stat-card" style={{background:"#fff3cd"}}>
+          <div className="stat-num" style={{color:"#8a6d00"}}>{stats.enAttente}</div>
+          <div className="stat-label">En attente</div>
+        </div>
+        <div className="stat-card" style={{background:"#fde2e2"}}>
+          <div className="stat-num" style={{color:"#e08a8a"}}>{stats.annules}</div>
+          <div className="stat-label">Annulés</div>
+        </div>
+      </div>
+
+      <div className="section-title" style={{marginTop:"20px"}}>Détails</div>
+      <div className="cat-block">
+        <div style={{fontSize:"0.85rem", color:"#666", lineHeight:"1.8"}}>
+          <div>✅ <strong>Confirmés :</strong> {stats.confirmes} rendez-vous</div>
+          <div>⏳ <strong>En attente :</strong> {stats.enAttente} rendez-vous</div>
+          <div>❌ <strong>Annulés :</strong> {stats.annules} rendez-vous</div>
+          <div style={{marginTop:"10px", paddingTop:"10px", borderTop:"1px solid #eee"}}>
+            <strong>Taux de confirmation :</strong> {stats.total > 0 ? Math.round(stats.confirmes/stats.total*100) : 0}%
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Dashboard({ onLogout }) {
+  const [tab, setTab] = useState("rdv");
+  const [toast, setToast] = useState("");
+
+  function showToast(msg) {
+    setToast(msg);
+    setTimeout(()=>setToast(""), 2200);
+  }
+
+  return (
+    <div className="wrap">
+      <div className="header" style={{position:"relative"}}>
+        <div className="header-title">💅 Espace pro</div>
+        <div className="header-sub">RDV Beauté · Gestion</div>
+        <button className="logout-btn" onClick={onLogout}>Déconnexion</button>
+      </div>
+      <div className="tabs">
+        <div className={`tab ${tab==="rdv"?"active":""}`} onClick={()=>setTab("rdv")}>📅 RDV</div>
+        <div className={`tab ${tab==="services"?"active":""}`} onClick={()=>setTab("services")}>💅 Services</div>
+        <div className={`tab ${tab==="dispo"?"active":""}`} onClick={()=>setTab("dispo")}>🗓 Dispo</div>
+        <div className={`tab ${tab==="stats"?"active":""}`} onClick={()=>setTab("stats")}>📊 Stats</div>
+      </div>
+      <div className="content">
+        {tab==="rdv" && <RdvTab showToast={showToast} />}
+        {tab==="services" && <ServicesTab showToast={showToast} />}
+        {tab==="dispo" && <DispoTab showToast={showToast} />}
+        {tab==="stats" && <StatsTab />}
+      </div>
+      <Toast msg={toast} />
+    </div>
+  );
+}
+
+function App() {
+  const [authed, setAuthed] = useState(()=> sessionStorage.getItem("rdv_admin_auth")==="1");
+
+  function handleLogin() {
+    sessionStorage.setItem("rdv_admin_auth","1");
+    setAuthed(true);
+  }
+  function handleLogout() {
+    sessionStorage.removeItem("rdv_admin_auth");
+    setAuthed(false);
+  }
+
+  if (!authed) return <LoginScreen onLogin={handleLogin} />;
+  return <Dashboard onLogout={handleLogout} />;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
