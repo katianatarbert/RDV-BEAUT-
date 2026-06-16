@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="RDV Beauté" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#c9a0dc" />
+  <title>RDV Beauté</title>
+  <link rel="manifest" href="manifest.json" />
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #fdf6f0;
+      color: #2d2d2d;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+    }
+    #root { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
+
+    /* APP SHELL */
+    .app { display: flex; flex-direction: column; height: 100dvh; max-width: 430px; margin: 0 auto; width: 100%; }
+
+    /* HEADER fixe */
+    .header {
+      background: linear-gradient(135deg, #c9a0dc 0%, #f4a7b9 60%, #ffd6c0 100%);
+      padding: 48px 20px 16px;
+      flex-shrink: 0;
+    }
+    .header-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: white;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.12);
+    }
+    .header-sub {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.88);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 300;
+      margin-top: 2px;
+    }
+    .steps-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 14px;
+    }
+    .step-pill {
+      flex: 1;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.3);
+      transition: background 0.3s;
+    }
+    .step-pill.active { background: white; }
+    .step-pill.done { background: rgba(255,255,255,0.7); }
+    .step-label-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+    }
+    .step-lbl {
+      font-size: 0.6rem;
+      color: rgba(255,255,255,0.7);
+      letter-spacing: 0.04em;
+      flex: 1;
+      text-align: center;
+    }
+    .step-lbl.active { color: white; font-weight: 500; }
+
+    /* SCROLL AREA */
+    .scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 16px 14px 0;
+    }
+
+    /* BOTTOM BAR fixe */
+    .bottom-bar {
+      flex-shrink: 0;
+      padding: 12px 14px;
+      padding-bottom: max(12px, env(safe-area-inset-bottom));
+      background: #fdf6f0;
+      border-top: 1px solid #f0e8f5;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #8b5e8f;
+      margin-bottom: 14px;
+    }
+
+    /* CATÉGORIES */
+    .cat-card {
+      background: white;
+      border-radius: 14px;
+      border: 2px solid transparent;
+      padding: 13px 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+      margin-bottom: 8px;
+    }
+    .cat-card.selected { border-color: #c9a0dc; background: #fdf3ff; }
+    .cat-header { display: flex; align-items: center; gap: 10px; }
+    .cat-icon { font-size: 1.3rem; }
+    .cat-name { font-weight: 500; font-size: 0.95rem; flex: 1; }
+    .cat-chevron { color: #ccc; font-size: 0.8rem; transition: transform 0.2s; }
+    .cat-card.open .cat-chevron { transform: rotate(90deg); }
+
+    .prestation-list { display: flex; flex-direction: column; gap: 5px; margin-top: 10px; }
+    .prestation-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 11px;
+      border-radius: 10px;
+      background: #f9f3ff;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.15s;
+      gap: 8px;
+    }
+    .prestation-item.selected { border-color: #c9a0dc; background: #efe1ff; }
+    .prestation-label { font-size: 0.85rem; flex: 1; }
+    .prestation-prix { font-size: 0.82rem; font-weight: 600; color: #9b59b6; white-space: nowrap; }
+
+    /* CALENDRIER */
+    .cal-wrap { background: white; border-radius: 16px; padding: 14px; box-shadow: 0 1px 8px rgba(0,0,0,0.06); }
+    .cal-month { text-align: center; font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 600; color: #8b5e8f; margin-bottom: 10px; }
+    .cal-header { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 4px; }
+    .cal-dname { font-size: 0.65rem; color: #bbb; text-align: center; text-transform: uppercase; letter-spacing: 0.04em; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+    .cal-cell {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.82rem;
+    }
+    .cal-cell.off { color: #e0e0e0; text-decoration: line-through; }
+    .cal-cell.on {
+      background: #f3e8ff;
+      color: #7c3aed;
+      cursor: pointer;
+      font-weight: 500;
+      border: 2px solid transparent;
+    }
+    .cal-cell.on:active { background: #e9d5ff; }
+    .cal-cell.sel { background: #c9a0dc !important; color: white !important; }
+
+    .divider { height: 1px; background: linear-gradient(to right, transparent, #e8b4d4, transparent); margin: 12px 0; }
+
+    .slots-wrap { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+    .slot-btn {
+      padding: 7px 16px;
+      border-radius: 30px;
+      border: 2px solid #e0c8f0;
+      background: white;
+      color: #7c3aed;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .slot-btn.sel { background: #c9a0dc; border-color: #c9a0dc; color: white; }
+    .slot-note { font-size: 0.72rem; color: #bbb; margin-top: 8px; font-style: italic; }
+
+    /* FORM */
+    .form-group { margin-bottom: 14px; }
+    .form-label { font-size: 0.75rem; color: #999; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; display: block; margin-bottom: 5px; }
+    .form-input {
+      width: 100%;
+      padding: 11px 13px;
+      border-radius: 10px;
+      border: 2px solid #eee;
+      font-size: 0.95rem;
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      background: white;
+      -webkit-appearance: none;
+    }
+    .form-input:focus { border-color: #c9a0dc; }
+
+    /* RECAP */
+    .recap-box { background: #fdf3ff; border: 2px solid #e0c8f0; border-radius: 14px; padding: 14px; margin-bottom: 14px; }
+    .recap-row { display: flex; gap: 8px; margin-bottom: 8px; font-size: 0.88rem; }
+    .recap-icon { flex-shrink: 0; }
+    .recap-label { color: #bbb; font-size: 0.72rem; display: block; }
+    .recap-val { color: #2d2d2d; }
+
+    .warn-box { background: #fff8e1; border: 1px solid #ffe082; border-radius: 10px; padding: 11px 13px; font-size: 0.78rem; color: #7c5e00; margin-bottom: 14px; line-height: 1.5; }
+
+    /* BOUTONS */
+    .btn-main {
+      flex: 1;
+      padding: 13px;
+      border-radius: 30px;
+      background: linear-gradient(135deg, #c9a0dc, #f4a7b9);
+      color: white;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .btn-main:disabled { opacity: 0.35; }
+    .btn-back {
+      padding: 13px 18px;
+      border-radius: 30px;
+      border: 2px solid #e0c8f0;
+      background: none;
+      color: #9b59b6;
+      font-size: 0.9rem;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* SUCCÈS */
+    .success { text-align: center; padding: 30px 10px 20px; }
+    .success-emoji { font-size: 3.2rem; margin-bottom: 12px; }
+    .success-title { font-family: 'Cormorant Garamond', serif; font-size: 1.7rem; font-weight: 600; color: #8b5e8f; margin-bottom: 8px; }
+    .success-msg { color: #888; font-size: 0.9rem; line-height: 1.6; margin-bottom: 20px; }
+
+    .sel-summary { background: white; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; border: 1px solid #eee; font-size: 0.82rem; color: #666; display: flex; align-items: center; gap: 7px; }
+    .sel-summary strong { color: #8b5e8f; }
+
+    .spacer { height: 20px; }
+
+    .admin-link { text-align: center; padding: 10px 0 4px; }
+    .admin-link a { font-size: 0.68rem; color: #ccc; text-decoration: none; letter-spacing: 0.04em; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+const CATS = [
+  { id:"manucure", label:"Manucure", icon:"💅", items:[
+    {id:"m1",label:"Gainage sur ongle naturel",prix:"35€"},
+    {id:"m2",label:"Pose Gel X",prix:"40€"},
+    {id:"m3",label:"Pose chablon",prix:"50€"},
+    {id:"m4",label:"Remplissage",prix:"35€"},
+    {id:"m5",label:"Remplissage pose extérieur",prix:"40€"},
+    {id:"m6",label:"Dépose Acrylique",prix:"20€"},
+    {id:"m7",label:"Dépose",prix:"15€"},
+    {id:"m8",label:"Nail art",prix:"Sur devis"},
+  ]},
+  { id:"pedicure", label:"Pédicure", icon:"🦶", items:[
+    {id:"p1",label:"Vernis semi-perm simple",prix:"20€"},
+    {id:"p2",label:"Semi-Perm avec extension gros orteil",prix:"35€"},
+    {id:"p3",label:"Dépose + Repose vernis simple",prix:"25€"},
+    {id:"p4",label:"Remplissage",prix:"30€"},
+    {id:"p5",label:"Dépose acrylique",prix:"20€"},
+    {id:"p6",label:"Dépose",prix:"15€"},
+    {id:"p7",label:"Déco (strass, dessin, french élaboré)",prix:"+5€"},
+  ]},
+  { id:"soins-pieds", label:"Soins des pieds", icon:"✨", items:[
+    {id:"sp1",label:"Talon express",prix:"25€"},
+    {id:"sp2",label:"Soins des pieds",prix:"40€"},
+    {id:"sp3",label:"Soins + vernis semi-perm simple",prix:"50€"},
+    {id:"sp4",label:"Soins dépose + repose + vernis semi-perm",prix:"60€"},
+    {id:"sp5",label:"Soins + remplissage",prix:"65€"},
+    {id:"sp6",label:"Soins + vernis semi-perm + extension gros orteil",prix:"70€"},
+  ]},
+  { id:"visage", label:"Soins du visage", icon:"🌸", items:[
+    {id:"v1",label:"Soins du visage",prix:"45€"},
+  ]},
+  { id:"epilations", label:"Épilations", icon:"🌿", items:[
+    {id:"e1",label:"Sourcils",prix:"10€"},
+    {id:"e2",label:"Lèvre",prix:"10€"},
+    {id:"e3",label:"Aiselles",prix:"10€"},
+    {id:"e4",label:"Demi-jambe",prix:"15€"},
+    {id:"e5",label:"Jambes entières",prix:"28€"},
+    {id:"e6",label:"Maillot échancré",prix:"25€"},
+    {id:"e7",label:"Maillot intégral",prix:"30€"},
+    {id:"e8",label:"Vajacial seul",prix:"40€"},
+    {id:"e9",label:"Interfessier",prix:"5€"},
+    {id:"e10",label:"Épilation intégral + vajacial",prix:"60€"},
+    {id:"e11",label:"PACK Aiselle + Demi-jambes + Maillot intégral 🆕",prix:"50€"},
+  ]},
+  { id:"massage", label:"Massage", icon:"💆", items:[
+    {id:"mg1",label:"Massage relaxant corps entier (45min–1h)",prix:"60€"},
+  ]},
+];
+
+const JUILLET = {
+  1:{slots:["17h30"]}, 2:{slots:[]}, 3:{slots:["17h30"]},
+  4:{slots:["8h00-11h00","14h00-17h00","20h00"]},
+  5:{slots:["8h00-11h00","14h00-17h00"]},
+  6:{slots:["8h00-11h00","14h00-17h00"]},
+  7:{slots:["8h00-11h00","14h00-17h00"]},
+  8:{slots:[]}, 9:{slots:[]}, 10:{slots:[]}, 11:{slots:[]}, 12:{slots:[]},
+  13:{slots:["8h00-11h00","14h00-17h00"]}, 14:{slots:[]},
+  15:{slots:["17h30"]}, 16:{slots:[]}, 17:{slots:["17h30"]},
+  18:{slots:["8h00-11h00","14h00-17h00"]},
+  19:{slots:[]}, 20:{slots:[]}, 21:{slots:[]},
+  22:{slots:["17h30"]},
+  23:{slots:[]}, 24:{slots:[]}, 25:{slots:[]},
+  26:{slots:["8h00-11h00","14h00-17h00"]},
+  27:{slots:["8h00-11h00","14h00-17h00"]},
+  28:{slots:["8h00-11h00","14h00-17h00"]},
+  29:{slots:["8h00-11h00","14h00-17h00"]},
+  30:{slots:["8h00-11h00","14h00-17h00"]},
+  31:{slots:["8h00-11h00","14h00-17h00"]},
+};
+
+const JOURS = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
+const STEP_LABELS = ["Prestation","Date","Infos","Confirmation"];
+
+function App() {
+  const [step, setStep] = useState(1);
+  const [openCat, setOpenCat] = useState(null);
+  const [selPrest, setSelPrest] = useState(null);
+  const [selDay, setSelDay] = useState(null);
+  const [selSlot, setSelSlot] = useState(null);
+  const [form, setForm] = useState({prenom:"",nom:"",tel:""});
+  const [loading, setLoading] = useState(false);
+
+  const pInfo = selPrest ? CATS.flatMap(c=>c.items).find(p=>p.id===selPrest) : null;
+  const cInfo = selPrest ? CATS.find(c=>c.items.some(p=>p.id===selPrest)) : null;
+  const slots = selDay ? (JUILLET[selDay]?.slots||[]) : [];
+
+  const canStep2 = !!selPrest;
+  const canStep3 = !!selDay && !!selSlot;
+  const canStep4 = form.prenom.trim() && form.nom.trim() && form.tel.trim();
+
+  const calCells = [];
+  for(let i=0;i<2;i++) calCells.push(null); // mercredi = index 2
+  for(let d=1;d<=31;d++) calCells.push(d);
+
+  function confirm() {
+    setLoading(true);
+
+    // Sauvegarde locale du RDV pour la partie admin
+    try {
+      const rdv = {
+        id: Date.now(),
+        prestation: pInfo?.label,
+        categorie: cInfo?.label,
+        prix: pInfo?.prix,
+        jour: selDay,
+        mois: "Juillet 2026",
+        creneau: selSlot,
+        prenom: form.prenom,
+        nom: form.nom,
+        tel: form.tel,
+        statut: "en_attente",
+        creeLe: new Date().toISOString(),
+      };
+      const existants = JSON.parse(localStorage.getItem("rdv_beaute_liste") || "[]");
+      existants.push(rdv);
+      localStorage.setItem("rdv_beaute_liste", JSON.stringify(existants));
+    } catch (e) {}
+
+    setTimeout(()=>{setLoading(false);setStep(5);},900);
+  }
+  function reset() {
+    setStep(1);setOpenCat(null);setSelPrest(null);
+    setSelDay(null);setSelSlot(null);setForm({prenom:"",nom:"",tel:""});
+  }
+
+  return (
+    <div className="app">
+      {/* HEADER */}
+      <div className="header">
+        <div className="header-title">💅 RDV Beauté</div>
+        <div className="header-sub">Esthéticienne · Martinique</div>
+        {step < 5 && <>
+          <div className="steps-row">
+            {[1,2,3,4].map(s=>(
+              <div key={s} className={`step-pill ${step===s?"active":step>s?"done":""}`} />
+            ))}
+          </div>
+          <div className="step-label-row">
+            {STEP_LABELS.map((l,i)=>(
+              <div key={i} className={`step-lbl ${step===i+1?"active":""}`}>{l}</div>
+            ))}
+          </div>
+        </>}
+      </div>
+
+      {/* CONTENU SCROLLABLE */}
+      <div className="scroll-area">
+
+        {/* ÉTAPE 1 */}
+        {step===1 && <>
+          <div className="section-title">Quelle prestation ?</div>
+          {CATS.map(cat=>(
+            <div key={cat.id}
+              className={`cat-card ${openCat===cat.id?"open":""} ${cInfo?.id===cat.id?"selected":""}`}
+              onClick={()=>setOpenCat(openCat===cat.id?null:cat.id)}
+            >
+              <div className="cat-header">
+                <span className="cat-icon">{cat.icon}</span>
+                <span className="cat-name">{cat.label}</span>
+                <span className="cat-chevron">▶️</span>
+              </div>
+              {openCat===cat.id && (
+                <div className="prestation-list" onClick={e=>e.stopPropagation()}>
+                  {cat.items.map(p=>(
+                    <div key={p.id}
+                      className={`prestation-item ${selPrest===p.id?"selected":""}`}
+                      onClick={()=>setSelPrest(selPrest===p.id?null:p.id)}
+                    >
+                      <span className="prestation-label">{p.label}</span>
+                      <span className="prestation-prix">{p.prix}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+          <div className="spacer"/>
+        </>}
+
+        {/* ÉTAPE 2 */}
+        {step===2 && <>
+          <div className="section-title">Choisissez une date</div>
+          {pInfo && <div className="sel-summary"><span>{cInfo?.icon}</span><span>{pInfo.label} — <strong>{pInfo.prix}</strong></span></div>}
+          <div className="cal-wrap">
+            <div className="cal-month">Juillet 2026</div>
+            <div className="cal-header">{JOURS.map(d=><div key={d} className="cal-dname">{d}</div>)}</div>
+            <div className="cal-grid">
+              {calCells.map((day,idx)=>{
+                if(!day) return <div key={idx} className="cal-cell"/>;
+                const ok = JUILLET[day]?.slots?.length>0;
+                return <div key={day} className={`cal-cell ${ok?"on":"off"} ${selDay===day?"sel":""}`}
+                  onClick={()=>{if(ok){setSelDay(day);setSelSlot(null);}}}>
+                  {day}
+                </div>;
+              })}
+            </div>
+            {selDay && <>
+              <div className="divider"/>
+              <div style={{fontSize:"0.8rem",color:"#999",marginBottom:6}}>
+                Créneaux le <strong style={{color:"#8b5e8f"}}>{selDay} juillet</strong> :
+              </div>
+              <div className="slots-wrap">
+                {slots.map(s=>(
+                  <button key={s} className={`slot-btn ${selSlot===s?"sel":""}`} onClick={()=>setSelSlot(s)}>{s}</button>
+                ))}
+              </div>
+              {slots.includes("17h30") && <div className="slot-note">⚠️ Créneau 17h30 réservé VSP pieds simple</div>}
+              {slots.includes("20h00") && <div className="slot-note">⚠️ Créneau 20h réservé VSP pieds simple</div>}
+            </>}
+          </div>
+          <div className="spacer"/>
+        </>}
+
+        {/* ÉTAPE 3 */}
+        {step===3 && <>
+          <div className="section-title">Vos coordonnées</div>
+          <div className="sel-summary"><span>📅</span><span>Le <strong>{selDay} juillet</strong> à <strong>{selSlot}</strong></span></div>
+          <div className="form-group">
+            <label className="form-label">Prénom</label>
+            <input className="form-input" type="text" placeholder="Votre prénom"
+              value={form.prenom} onChange={e=>setForm({...form,prenom:e.target.value})}/>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Nom</label>
+            <input className="form-input" type="text" placeholder="Votre nom"
+              value={form.nom} onChange={e=>setForm({...form,nom:e.target.value})}/>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Téléphone</label>
+            <input className="form-input" type="tel" placeholder="06 96 XX XX XX"
+              value={form.tel} onChange={e=>setForm({...form,tel:e.target.value})}/>
+          </div>
+          <div className="spacer"/>
+        </>}
+
+        {/* ÉTAPE 4 */}
+        {step===4 && <>
+          <div className="section-title">Récapitulatif</div>
+          <div className="recap-box">
+            <div className="recap-row"><span className="recap-icon">{cInfo?.icon}</span><div><span className="recap-label">Prestation</span><span className="recap-val">{pInfo?.label} — {pInfo?.prix}</span></div></div>
+            <div className="recap-row"><span className="recap-icon">📅</span><div><span className="recap-label">Date & heure</span><span className="recap-val">{selDay} juillet 2026 à {selSlot}</span></div></div>
+            <div className="recap-row"><span className="recap-icon">👤</span><div><span className="recap-label">Nom</span><span className="recap-val">{form.prenom} {form.nom}</span></div></div>
+            <div className="recap-row"><span className="recap-icon">📞</span><div><span className="recap-label">Téléphone</span><span className="recap-val">{form.tel}</span></div></div>
+          </div>
+          <div className="warn-box">⚠️ Merci de confirmer votre présence <strong>24h à l'avance</strong>. En cas d'annulation tardive, le créneau sera proposé à quelqu'un d'autre.</div>
+          <div className="spacer"/>
+        </>}
+
+        {/* ÉTAPE 5 */}
+        {step===5 && <div className="success">
+          <div className="success-emoji">🌸</div>
+          <div className="success-title">Demande envoyée !</div>
+          <div className="success-msg">Merci <strong>{form.prenom}</strong> !<br/>Votre demande pour le <strong>{selDay} juillet à {selSlot}</strong> a bien été reçue.</div>
+          <div className="warn-box" style={{textAlign:"left",marginBottom:20}}>
+            📞 Votre esthéticienne vous contactera au <strong>{form.tel}</strong> pour confirmer.<br/><br/>
+            ⚠️ <strong>Rappel :</strong> Confirmez 24h à l'avance. Merci !
+          </div>
+        </div>}
+
+      </div>
+
+      {/* BARRE DU BAS */}
+      <div className="bottom-bar">
+        {step===1 && <>
+          <div style={{flex:1}}/>
+          <button className="btn-main" disabled={!canStep2} onClick={()=>setStep(2)}>Choisir une date →</button>
+        </>}
+        {step===2 && <>
+          <button className="btn-back" onClick={()=>setStep(1)}>← Retour</button>
+          <button className="btn-main" disabled={!canStep3} onClick={()=>setStep(3)}>Continuer →</button>
+        </>}
+        {step===3 && <>
+          <button className="btn-back" onClick={()=>setStep(2)}>← Retour</button>
+          <button className="btn-main" disabled={!canStep4} onClick={()=>setStep(4)}>Vérifier →</button>
+        </>}
+        {step===4 && <>
+          <button className="btn-back" onClick={()=>setStep(3)}>← Modifier</button>
+          <button className="btn-main" disabled={loading} onClick={confirm}>{loading?"Envoi...":"✅ Confirmer"}</button>
+        </>}
+        {step===5 && <>
+          <button className="btn-main" onClick={reset}>Prendre un autre RDV</button>
+        </>}
+      </div>
+
+      {step===1 && <div className="admin-link"><a href="admin.html">Espace pro</a></div>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
